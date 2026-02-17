@@ -1,4 +1,5 @@
 # ReEnv
+[![CI](https://github.com/levigross/NixRevAI/actions/workflows/nix-ci.yml/badge.svg?branch=main)](https://github.com/levigross/NixRevAI/actions/workflows/nix-ci.yml)
 
 Modular Nix-based reverse-engineering development environment.
 
@@ -48,8 +49,11 @@ nix develop -c true
 
 ## CI
 
-GitHub Actions runs Nix evaluation checks on pushes and pull requests:
+GitHub Actions runs:
 
-- `nix flake show --no-write-lock-file`
-- `nix flake check --no-build --no-write-lock-file`
-- `nix eval --raw .#devShells.x86_64-linux.default.inputDerivation.drvPath`
+- On push and pull request:
+  - `nix flake show --no-write-lock-file`
+  - `nix flake check --no-build --no-write-lock-file`
+  - `nix eval --raw .#devShells.x86_64-linux.default.inputDerivation.drvPath`
+- On pull request only:
+  - `nix develop -c bash tests/unit/devshell_unit.sh`
