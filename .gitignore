@@ -1,0 +1,10 @@
+.tmp/
+.ghidra_cache/
+.ghidra_settings/
+.ghidra_tmp/
+.ghidra_xdg/
+.ghidra_proj/
+.ghidra_camproj.log
+.mcp.json
+.direnv/
+.venv/

@@ -1,0 +1,29 @@
+{ pkgs }:
+[
+  pkgs.bat
+  pkgs.bun
+  pkgs.bison
+  pkgs.cmake
+  pkgs.dig
+  pkgs.flex
+  pkgs.gcc
+  pkgs.glab
+  pkgs.gh
+  pkgs.git
+  pkgs.gnumake
+  pkgs.go
+  pkgs.gradle
+  pkgs.jdk21
+  pkgs.jq
+  pkgs.just
+  pkgs.lsof
+  pkgs.nil
+  pkgs.nixd
+  pkgs.nodejs
+  pkgs.pkg-config
+  pkgs.psmisc
+  pkgs.ripgrep
+  pkgs.sqlite
+  pkgs.tree
+  pkgs.uv
+]
