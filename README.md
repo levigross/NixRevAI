@@ -40,18 +40,6 @@ nix develop -c rizin
 nix develop -c python -c "import pyghidra, angr, lief"
 ```
 
-## What CI verifies
-
-GitHub Actions runs on push and pull request:
-
-- `nix flake show --no-write-lock-file`
-- `nix flake check --no-build --no-write-lock-file`
-- `nix eval --raw .#devShells.x86_64-linux.default.inputDerivation.drvPath`
-
-On pull requests, it also runs dev shell unit tests:
-
-- `nix develop -c bash tests/unit/devshell_unit.sh`
-
 ## Tool reference
 
 ### Core RE and CLI tools
@@ -156,3 +144,35 @@ nix flake show --no-write-lock-file
 nix flake check --no-build --no-write-lock-file
 nix develop -c bash tests/unit/devshell_unit.sh
 ```
+
+<details>
+<summary>Contribution Guidelines</summary>
+
+### Workflow
+
+1. Create a feature branch from `main`.
+2. Keep changes focused and avoid unrelated refactors.
+3. Run validation locally before opening a PR.
+4. Open a PR with a clear problem statement and change summary.
+
+### Required checks before PR
+
+```bash
+nix flake show --no-write-lock-file
+nix flake check --no-build --no-write-lock-file
+nix develop -c bash tests/unit/devshell_unit.sh
+```
+
+### Nix-specific expectations
+
+- Keep fetched artifacts pinned with hashes.
+- Preserve reproducibility and avoid ad-hoc, unpinned upgrades.
+- Update module imports/paths consistently when moving files.
+
+### Commit and PR quality
+
+- Use descriptive commit messages.
+- Document behavior changes in `README.md` when user-facing.
+- Do not commit local runtime artifacts (for example `.direnv/` and `.mcp.json`).
+
+</details>

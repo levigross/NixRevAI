@@ -1,46 +1,105 @@
 # AGENTS.md
 
-Instructions for coding agents working in this repository.
+Practical guidance for agents using this repository as a reverse-engineering environment.
 
-## Mission
+## Purpose
 
-Keep this repository secure, deterministic, and easy to maintain while evolving a modular Nix environment.
+This repo provides a reproducible Nix flake for RE work. Use it to analyze binaries and firmware safely, document findings clearly, and keep changes deterministic.
 
-## Core rules
+## Fast start
 
-1. Prefer small, explicit changes over broad rewrites.
-2. Preserve reproducibility: keep hashes pinned and avoid unreviewed version bumps.
-3. Never commit secrets or machine-local artifacts.
-4. Keep imports and relative paths coherent when moving modules.
-5. Validate changes with Nix commands before finishing.
+1. Enter the environment:
 
-## Security defaults
+```bash
+nix develop
+```
 
-1. Treat all external inputs as untrusted.
-2. Do not introduce hardcoded credentials, tokens, or private URLs.
-3. Use least privilege for CI permissions and shell behavior.
-4. Keep supply-chain risk low: pin versions and hashes for fetched artifacts.
+2. Confirm key tooling is available:
 
-## Nix structure
+```bash
+command -v ghidra rizin uv binwalk gdb
+```
 
-- `modules/devshell/default.nix`: main flake-parts `perSystem` shell definition
-- `modules/overlays/default.nix`: custom nixpkgs overlay
-- `modules/toolsets/*.nix`: package groups
-- `modules/toolsets/default.nix`: toolset composition
-- `modules/pkgs/*.nix`: custom derivations
+3. Keep investigation artifacts under `.tmp/` unless the user asks to track them in git.
 
-## Required checks
+## Recommended reverse-engineering workflow
 
-Run these before considering work complete:
+### 1. Intake and triage
+
+1. Compute hashes for target inputs (`sha256sum`, `sha1sum`, `md5sum` as needed).
+2. Identify file types and container layers (`file`, `binwalk`, `7z`, `readelf`).
+3. Record exact sample path and hash in notes before deeper analysis.
+
+### 2. Unpack and normalize
+
+1. Extract firmware/archive layers into `.tmp/<case>/extracted/`.
+2. Preserve originals read-only; never overwrite source samples.
+3. Normalize names so follow-up steps are scriptable and repeatable.
+
+### 3. Static analysis first
+
+1. Start with fast CLI inspection (`rizin`, `radare2`, `strings`, `objdump`, `readelf`).
+2. Move to Ghidra for cross-references, decompilation, and type recovery.
+3. Use JADX/Krakatau for Android/JVM targets when relevant.
+4. Use BinDiff for patch/version comparisons (x86_64 hosts only).
+
+### 4. Dynamic analysis when justified
+
+1. Use `gdb`/`lldb`/`rr` for runtime behavior and control-flow validation.
+2. Use `strace` to inspect syscalls and runtime dependencies.
+3. Use `qemu` for architecture or firmware emulation when native execution is unavailable.
+
+### 5. Script and automate
+
+1. Use the included Python stack (`pyghidra`, `r2pipe`, `angr`, `lief`, `pwntools`) for repeatable analysis.
+2. Save reusable scripts under a user-approved path (default: `.tmp/<case>/scripts/`).
+3. Prefer deterministic scripts over one-off manual operations.
+
+### 6. Report findings
+
+For each meaningful finding, capture:
+
+1. What was found (behavior, vulnerability, protocol, key, IOC).
+2. Evidence (offsets, function names, strings, xrefs, screenshots/logs).
+3. Confidence and limitations.
+4. Reproduction steps and exact commands.
+
+## Tool selection guide
+
+- `ghidra`: deep static analysis, xrefs, decompilation, large codebases.
+- `rizin`/`radare2`: quick triage, scriptable analysis, byte-level patching.
+- `jadx`: Android APK/DEX decompilation.
+- `binwalk`, `jefferson`, `ubi_reader`, `squashfsTools`: firmware extraction.
+- `gdb`, `lldb`, `rr`, `strace`: runtime and behavioral validation.
+- `angr`, `unicorn`, `lief`: symbolic/dynamic scripting and binary rewriting support.
+- `hashcat`: credential/hash recovery tasks when explicitly authorized.
+
+## Security and safety rules
+
+1. Treat all samples as untrusted and potentially malicious.
+2. Do not execute unknown binaries on the host unless explicitly approved.
+3. Prefer isolated execution (emulation, controlled containers/VMs).
+4. Never embed secrets, credentials, or private data in commits.
+5. Never download or exfiltrate samples without explicit user consent.
+
+## Repo modification rules
+
+1. Keep Nix reproducibility intact: pin versions and hashes for fetched artifacts.
+2. Prefer minimal, reviewable diffs; avoid unrelated refactors.
+3. Update docs when behavior or workflows change.
+4. Do not commit local runtime files (`.mcp.json`, `.direnv/`, transient case data).
+
+## Validation before finishing changes
 
 ```bash
 nix flake show --no-write-lock-file
 nix flake check --no-build --no-write-lock-file
-nix develop -c true
+nix develop -c bash tests/unit/devshell_unit.sh
 ```
 
-## Git hygiene
+## Output quality bar for agent responses
 
-1. Do not commit `.mcp.json`, `.direnv/`, or other local runtime artifacts.
-2. Keep commits focused and reviewable.
-3. Do not rewrite history unless explicitly requested.
+1. Use exact file paths and command lines.
+2. Distinguish facts from hypotheses.
+3. Call out unknowns and propose the next highest-value verification step.
+4. Keep reports concise, evidence-driven, and reproducible.
