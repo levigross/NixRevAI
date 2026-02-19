@@ -2,7 +2,7 @@
 let
   inherit (pkgs) lib fetchFromGitHub;
 
-  builders = pkgs.callPackage "${pkgs.path}/pkgs/tools/security/ghidra/build-extension.nix" {
+  builders = pkgs.callPackage ./build-ghidra-extension.nix {
     inherit ghidra;
     jdk = pkgs.openjdk21;
   };

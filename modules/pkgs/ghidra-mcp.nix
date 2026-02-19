@@ -4,7 +4,7 @@
   ghidra,
   jdk21,
   zip,
-  ghidra-mcp-src,
+  fetchFromGitHub,
 }:
 
 let
@@ -29,7 +29,12 @@ stdenv.mkDerivation {
   pname = "ghidra-mcp";
   version = "2.0.0";
 
-  src = ghidra-mcp-src;
+  src = fetchFromGitHub {
+    owner = "bethington";
+    repo = "ghidra-mcp";
+    rev = "680b5aec97073fd0bb18947d39b19fdd4f1daf41";
+    hash = "sha256-tKJZ0uxbndfZWnNmzfHuQaG7DQGmYjBmhWeDDPM3s5c=";
+  };
 
   nativeBuildInputs = [ jdk21 zip ];
 
@@ -75,6 +80,10 @@ stdenv.mkDerivation {
     cp build/GhidraMCP.jar "$extDir/lib/"
     cp build/classes/extension.properties "$extDir/"
     cp build/classes/Module.manifest "$extDir/"
+
+    # Keep the upstream bridge script available for MCP client wiring.
+    mkdir -p "$out/libexec/ghidra-mcp"
+    cp bridge_mcp_ghidra.py "$out/libexec/ghidra-mcp/"
 
     runHook postInstall
   '';

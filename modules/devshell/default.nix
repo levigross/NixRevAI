@@ -36,7 +36,7 @@
       };
 
       reenvToolsets = import ../toolsets/default.nix {
-        inherit pkgs inputs;
+        inherit pkgs;
         enableDevTools = config.reenv.enableDevTools;
         enablePythonToolset = config.reenv.enablePythonToolset;
         enableHardwareToolset = config.reenv.enableHardwareToolset;
@@ -71,7 +71,7 @@
                   command = "${pkgs.lib.getExe pkgs.uv}";
                   args = [
                     "run"
-                    "${inputs.ghidra-mcp}/bridge_mcp_ghidra.py"
+                    "${reenvToolsets.reversingMeta.ghidraMcp}/libexec/ghidra-mcp/bridge_mcp_ghidra.py"
                   ];
                 };
               };

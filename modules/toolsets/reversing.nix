@@ -1,10 +1,9 @@
-{ pkgs, ghidra-mcp-src }:
+{ pkgs }:
 let
   ghidra-bin = pkgs.callPackage ../pkgs/ghidra-bin.nix { };
 
   ghidraMCP = pkgs.callPackage ../pkgs/ghidra-mcp.nix {
     ghidra = ghidra-bin;
-    inherit ghidra-mcp-src;
   };
 
   ghidraExts = import ../pkgs/ghidra-extensions.nix {
@@ -27,6 +26,7 @@ in
 {
   ghidra = ghidraWithExtensions;
   ghidraBase = ghidra-bin;
+  ghidraMcp = ghidraMCP;
 
   packages = [
     ghidraWithExtensions

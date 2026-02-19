@@ -1,14 +1,10 @@
 { pkgs
-, inputs
 , enableDevTools ? true
 , enablePythonToolset ? true
 , enableHardwareToolset ? true
 }:
 let
-  reversing = import ./reversing.nix {
-    inherit pkgs;
-    ghidra-mcp-src = inputs.ghidra-mcp;
-  };
+  reversing = import ./reversing.nix { inherit pkgs; };
   debugging = import ./debugging.nix { inherit pkgs; };
   binaryAnalysis = import ./binary-analysis.nix { inherit pkgs; };
   forensics = import ./forensics.nix { inherit pkgs; };
@@ -44,6 +40,6 @@ in
   inherit packagesByGroup allPackages;
 
   reversingMeta = {
-    inherit (reversing) ghidra ghidraBase;
+    inherit (reversing) ghidra ghidraBase ghidraMcp;
   };
 }
