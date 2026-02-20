@@ -5,36 +5,34 @@
   setuptools,
   jpype1,
   packaging,
-}:
-
-let
+}: let
   pname = "pyghidra";
   version = "3.0.2";
 in
-buildPythonPackage {
-  inherit pname version;
-  pyproject = true;
-
-  src = fetchPypi {
+  buildPythonPackage {
     inherit pname version;
-    hash = "sha256-ea1P1XHjLzQ88/zb2E/G4zPvGiZHWjqPcrYpqfPIedo=";
-  };
+    pyproject = true;
 
-  build-system = [ setuptools ];
+    src = fetchPypi {
+      inherit pname version;
+      hash = "sha256-ea1P1XHjLzQ88/zb2E/G4zPvGiZHWjqPcrYpqfPIedo=";
+    };
 
-  dependencies = [
-    jpype1
-    packaging
-  ];
+    build-system = [setuptools];
 
-  # Tests require a running Ghidra instance.
-  doCheck = false;
+    dependencies = [
+      jpype1
+      packaging
+    ];
 
-  pythonImportsCheck = [ "pyghidra" ];
+    # Tests require a running Ghidra instance.
+    doCheck = false;
 
-  meta = {
-    description = "Native CPython for Ghidra";
-    homepage = "https://github.com/NationalSecurityAgency/ghidra";
-    license = lib.licenses.asl20;
-  };
-}
+    pythonImportsCheck = ["pyghidra"];
+
+    meta = {
+      description = "Native CPython for Ghidra";
+      homepage = "https://github.com/NationalSecurityAgency/ghidra";
+      license = lib.licenses.asl20;
+    };
+  }

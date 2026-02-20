@@ -1,5 +1,7 @@
-{ pkgs, ghidra }:
-let
+{
+  pkgs,
+  ghidra,
+}: let
   inherit (pkgs) lib fetchFromGitHub;
 
   builders = pkgs.callPackage ./build-ghidra-extension.nix {
@@ -8,8 +10,7 @@ let
   };
 
   inherit (builders) buildGhidraExtension buildGhidraScripts;
-in
-{
+in {
   findcrypt = buildGhidraExtension (finalAttrs: {
     pname = "findcrypt";
     version = "3.1.6";
@@ -126,7 +127,7 @@ in
     meta = {
       description = "Scripts for the Ghidra software reverse engineering suite";
       homepage = "https://github.com/ghidraninja/ghidra_scripts";
-      license = with lib.licenses; [ gpl3Only gpl2Only ];
+      license = with lib.licenses; [gpl3Only gpl2Only];
     };
   };
 
@@ -137,7 +138,7 @@ in
     src = "${ghidra}/lib/ghidra/Extensions/Ghidra/${ghidra.distroPrefix}_SleighDevTools.zip";
     dontUnpack = true;
     dontBuild = true;
-    buildInputs = [ pkgs.python3 ];
+    buildInputs = [pkgs.python3];
 
     installPhase = ''
       runHook preInstall

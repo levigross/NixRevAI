@@ -1,5 +1,9 @@
-{ inputs, lib, config, ... }:
 {
+  inputs,
+  lib,
+  config,
+  ...
+}: {
   options.reenv = {
     enableDevTools = lib.mkOption {
       type = lib.types.bool;
@@ -20,67 +24,60 @@
     };
   };
 
-  config.perSystem =
-    { system
-    , ...
-    }:
-    let
-      pkgs = import inputs.nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-        overlays = [
-          (import ../overlays/default.nix {
-            inherit inputs system;
-          })
-        ];
-      };
-
-      reenvToolsets = import ../toolsets/default.nix {
-        inherit pkgs;
-        enableDevTools = config.reenv.enableDevTools;
-        enablePythonToolset = config.reenv.enablePythonToolset;
-        enableHardwareToolset = config.reenv.enableHardwareToolset;
-      };
-    in
-    {
-      _module.args.pkgs = pkgs;
-      _module.args.reenvToolsets = reenvToolsets;
-
-      devShells.default = pkgs.mkShell {
-        CGO_ENABLED = 0;
-        GHIDRA_INSTALL_DIR = "${reenvToolsets.reversingMeta.ghidraBase}/lib/ghidra";
-        NIX_GHIDRAHOME = "${reenvToolsets.reversingMeta.ghidra}/lib/ghidra/Ghidra";
-        JAVA_HOME = "${pkgs.openjdk21}";
-
-        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-          pkgs.stdenv.cc.cc.lib
-          pkgs.boost
-        ];
-
-        buildInputs = reenvToolsets.allPackages;
-
-        shellHook =
-          let
-            mcpConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs {
-              flavor = "claude-code";
-              programs = {
-                context7.enable = true;
-              };
-              settings.servers = {
-                ghidra-mcp = {
-                  command = "${pkgs.lib.getExe pkgs.uv}";
-                  args = [
-                    "run"
-                    "${reenvToolsets.reversingMeta.ghidraMcp}/libexec/ghidra-mcp/bridge_mcp_ghidra.py"
-                  ];
-                };
-              };
-            };
-          in
-          ''
-            ln -sf ${mcpConfig} .mcp.json
-            export SLEIGHHOME="${pkgs.rizinPlugins.rz-ghidra}/lib/rizin/plugins/rz_ghidra_sleigh"
-          '';
-      };
+  config.perSystem = {system, ...}: let
+    pkgs = import inputs.nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+      overlays = [
+        (import ../overlays/default.nix {
+          inherit inputs system;
+        })
+      ];
     };
+
+    reenvToolsets = import ../toolsets/default.nix {
+      inherit pkgs;
+      enableDevTools = config.reenv.enableDevTools;
+      enablePythonToolset = config.reenv.enablePythonToolset;
+      enableHardwareToolset = config.reenv.enableHardwareToolset;
+    };
+  in {
+    _module.args.pkgs = pkgs;
+    _module.args.reenvToolsets = reenvToolsets;
+
+    devShells.default = pkgs.mkShell {
+      CGO_ENABLED = 0;
+      GHIDRA_INSTALL_DIR = "${reenvToolsets.reversingMeta.ghidraBase}/lib/ghidra";
+      NIX_GHIDRAHOME = "${reenvToolsets.reversingMeta.ghidra}/lib/ghidra/Ghidra";
+      JAVA_HOME = "${pkgs.openjdk21}";
+
+      LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+        pkgs.stdenv.cc.cc.lib
+        pkgs.boost
+      ];
+
+      buildInputs = reenvToolsets.allPackages;
+
+      shellHook = let
+        mcpConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs {
+          flavor = "claude-code";
+          programs = {
+            context7.enable = true;
+          };
+          settings.servers = {
+            ghidra-mcp = {
+              command = "${pkgs.lib.getExe pkgs.uv}";
+              args = [
+                "run"
+                "${reenvToolsets.reversingMeta.ghidraMcp}/libexec/ghidra-mcp/bridge_mcp_ghidra.py"
+              ];
+            };
+          };
+        };
+      in ''
+        ln -sf ${mcpConfig} .mcp.json
+        export SLEIGHHOME="${pkgs.rizinPlugins.rz-ghidra}/lib/rizin/plugins/rz_ghidra_sleigh"
+      '';
+    };
+  };
 }

@@ -16,8 +16,8 @@
     };
   };
 
-  outputs = inputs@{ flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
+  outputs = inputs @ {flake-parts, ...}:
+    flake-parts.lib.mkFlake {inherit inputs;} {
       systems = [
         "x86_64-linux"
         "aarch64-linux"
@@ -25,7 +25,11 @@
         "aarch64-darwin"
       ];
 
-      imports = [ ./modules/devshell/default.nix ];
+      imports = [./modules/devshell/default.nix];
+
+      perSystem = {pkgs, ...}: {
+        formatter = pkgs.alejandra;
+      };
 
       flake.flakeModules.default = ./modules/devshell/default.nix;
     };

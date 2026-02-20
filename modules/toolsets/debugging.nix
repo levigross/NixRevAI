@@ -1,5 +1,4 @@
-{ pkgs }:
-[
+{pkgs}: [
   pkgs.gdb
   pkgs.gef
   pkgs.lldb

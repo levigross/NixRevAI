@@ -27,6 +27,9 @@ jobs:
       - name: Evaluate default devShell drvPath
         run: nix eval --raw .#devShells.x86_64-linux.default.inputDerivation.drvPath
 
+      - name: Check Nix formatting (alejandra)
+        run: nix run .#formatter.x86_64-linux -- --check .
+
   unit-tests:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

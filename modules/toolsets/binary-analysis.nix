@@ -1,5 +1,4 @@
-{ pkgs }:
-[
+{pkgs}: [
   pkgs.bintools
   pkgs.aflplusplus
   pkgs.unicorn

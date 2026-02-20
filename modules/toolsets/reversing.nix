@@ -1,6 +1,5 @@
-{ pkgs }:
-let
-  ghidra-bin = pkgs.callPackage ../pkgs/ghidra-bin.nix { };
+{pkgs}: let
+  ghidra-bin = pkgs.callPackage ../pkgs/ghidra-bin.nix {};
 
   ghidraMCP = pkgs.callPackage ../pkgs/ghidra-mcp.nix {
     ghidra = ghidra-bin;
@@ -21,26 +20,27 @@ let
     ghidraExts.sleighdevtools
   ];
 
-  rizinWithPlugins = pkgs.rizin.withPlugins (ps: with ps; [ jsdec rz-ghidra sigdb ]);
-in
-{
+  rizinWithPlugins = pkgs.rizin.withPlugins (ps: with ps; [jsdec rz-ghidra sigdb]);
+in {
   meta = {
     ghidra = ghidraWithExtensions;
     ghidraBase = ghidra-bin;
     ghidraMcp = ghidraMCP;
   };
 
-  packages = [
-    ghidraWithExtensions
-    rizinWithPlugins
-    pkgs.radare2
-    pkgs.retdec
-    pkgs.cutter
-    pkgs.binaryninja-free
-    pkgs.jadx
-    pkgs.krakatau2
-  ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
-    pkgs.bindiff
-    pkgs.wineWowPackages.stableFull
-  ];
+  packages =
+    [
+      ghidraWithExtensions
+      rizinWithPlugins
+      pkgs.radare2
+      pkgs.retdec
+      pkgs.cutter
+      pkgs.binaryninja-free
+      pkgs.jadx
+      pkgs.krakatau2
+    ]
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
+      pkgs.bindiff
+      pkgs.wineWowPackages.stableFull
+    ];
 }

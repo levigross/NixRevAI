@@ -1,5 +1,4 @@
-{ pkgs }:
-[
+{pkgs}: [
   pkgs.binwalk
   pkgs.foremost
   pkgs.squashfsTools

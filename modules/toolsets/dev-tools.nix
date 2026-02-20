@@ -1,5 +1,4 @@
-{ pkgs }:
-[
+{pkgs}: [
   pkgs.bat
   pkgs.bun
   pkgs.bison

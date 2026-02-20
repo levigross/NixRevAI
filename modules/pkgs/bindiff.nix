@@ -1,14 +1,14 @@
-{ lib
-, stdenv
-, fetchurl
-, autoPatchelfHook
-, dpkg
-, glibc
-, gcc-unwrapped
-, jdk21
-, makeWrapper
+{
+  lib,
+  stdenv,
+  fetchurl,
+  autoPatchelfHook,
+  dpkg,
+  glibc,
+  gcc-unwrapped,
+  jdk21,
+  makeWrapper,
 }:
-
 stdenv.mkDerivation (finalAttrs: {
   pname = "bindiff";
   version = "8";
@@ -74,8 +74,8 @@ stdenv.mkDerivation (finalAttrs: {
     description = "Find differences and similarities in disassembled code";
     homepage = "https://github.com/google/bindiff";
     license = lib.licenses.asl20;
-    platforms = [ "x86_64-linux" ];
-    sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
-    maintainers = [ ];
+    platforms = ["x86_64-linux"];
+    sourceProvenance = [lib.sourceTypes.binaryNativeCode];
+    maintainers = [];
   };
 })
