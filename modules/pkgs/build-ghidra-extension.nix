@@ -50,7 +50,7 @@ let
         __darwinAllowLocalNetworking = true;
 
         gradleBuildTask = args.gradleBuildTask or "buildExtension";
-        gradleFlags = args.gradleFlags or [ ] ++ [ "-PGHIDRA_INSTALL_DIR=${ghidra}/lib/ghidra" ];
+        gradleFlags = (args.gradleFlags or [ ]) ++ [ "-PGHIDRA_INSTALL_DIR=${ghidra}/lib/ghidra" ];
 
         installPhase =
           args.installPhase or ''
@@ -89,7 +89,7 @@ let
           cp -r . $GHIDRA_HOME/ghidra_scripts
 
           touch $GHIDRA_HOME/Module.manifest
-          cat <<'EOF' > extension.properties
+          cat <<'EOF' > $GHIDRA_HOME/extension.properties
           name=${pname}
           description=${meta.description or ""}
           author=

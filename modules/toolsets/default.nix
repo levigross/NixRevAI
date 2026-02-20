@@ -39,7 +39,5 @@ in
 {
   inherit packagesByGroup allPackages;
 
-  reversingMeta = {
-    inherit (reversing) ghidra ghidraBase ghidraMcp;
-  };
+  reversingMeta = reversing.meta;
 }

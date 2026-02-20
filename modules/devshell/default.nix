@@ -78,9 +78,6 @@
             };
           in
           ''
-            if [ -L ".mcp.json" ]; then
-              unlink .mcp.json
-            fi
             ln -sf ${mcpConfig} .mcp.json
             export SLEIGHHOME="${pkgs.rizinPlugins.rz-ghidra}/lib/rizin/plugins/rz_ghidra_sleigh"
           '';

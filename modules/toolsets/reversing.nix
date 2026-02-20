@@ -24,9 +24,11 @@ let
   rizinWithPlugins = pkgs.rizin.withPlugins (ps: with ps; [ jsdec rz-ghidra sigdb ]);
 in
 {
-  ghidra = ghidraWithExtensions;
-  ghidraBase = ghidra-bin;
-  ghidraMcp = ghidraMCP;
+  meta = {
+    ghidra = ghidraWithExtensions;
+    ghidraBase = ghidra-bin;
+    ghidraMcp = ghidraMCP;
+  };
 
   packages = [
     ghidraWithExtensions
@@ -39,5 +41,6 @@ in
     pkgs.krakatau2
   ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isx86_64 [
     pkgs.bindiff
+    pkgs.wineWowPackages.stableFull
   ];
 }

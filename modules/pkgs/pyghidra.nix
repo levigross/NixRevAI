@@ -7,14 +7,16 @@
   packaging,
 }:
 
-buildPythonPackage {
+let
   pname = "pyghidra";
   version = "3.0.2";
+in
+buildPythonPackage {
+  inherit pname version;
   pyproject = true;
 
   src = fetchPypi {
-    pname = "pyghidra";
-    version = "3.0.2";
+    inherit pname version;
     hash = "sha256-ea1P1XHjLzQ88/zb2E/G4zPvGiZHWjqPcrYpqfPIedo=";
   };
 

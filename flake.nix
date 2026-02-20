@@ -26,5 +26,7 @@
       ];
 
       imports = [ ./modules/devshell/default.nix ];
+
+      flake.flakeModules.default = ./modules/devshell/default.nix;
     };
 }

@@ -5,17 +5,17 @@
 , dpkg
 , glibc
 , gcc-unwrapped
-, jdk17
+, jdk21
 , makeWrapper
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "bindiff";
   version = "8";
 
   src = fetchurl {
-    url = "https://github.com/google/bindiff/releases/download/v${version}/bindiff_${version}_amd64.deb";
-    sha256 = "1njd5w4mymxy9rms0xyplmmjgb46ai40wdwl6xrzd7aajzir06c2";
+    url = "https://github.com/google/bindiff/releases/download/v${finalAttrs.version}/bindiff_${finalAttrs.version}_amd64.deb";
+    hash = "sha256-ghmQ45dKnfZzN5Q3DkhUhqwna6XXd6BrTr5XXwkvTdo=";
   };
 
   nativeBuildInputs = [
@@ -64,18 +64,18 @@ stdenv.mkDerivation rec {
     makeWrapper $out/opt/bindiff/binexport2dump $out/bin/binexport2dump
 
     # Create wrapper for the Java UI
-    makeWrapper ${jdk17}/bin/java $out/bin/bindiff-ui \
+    makeWrapper ${jdk21}/bin/java $out/bin/bindiff-ui \
       --add-flags "-jar $out/opt/bindiff/bindiff.jar"
 
     runHook postInstall
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Find differences and similarities in disassembled code";
     homepage = "https://github.com/google/bindiff";
-    license = licenses.asl20;
+    license = lib.licenses.asl20;
     platforms = [ "x86_64-linux" ];
-    sourceProvenance = [ sourceTypes.binaryNativeCode ];
+    sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
     maintainers = [ ];
   };
-}
+})
