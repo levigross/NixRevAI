@@ -116,7 +116,9 @@ assert_cmd afl-fuzz
 # ---------------------------------------------------------------------------
 assert_cmd binwalk
 assert_cmd foremost
-assert_cmd sleuthkit
+# Sleuth Kit ships a family of binaries rather than a `sleuthkit` command.
+assert_cmd fls
+assert_cmd icat
 
 # ---------------------------------------------------------------------------
 # Section: Crypto toolset
