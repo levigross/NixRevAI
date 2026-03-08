@@ -10,7 +10,7 @@ This repo includes a scheduled workflow at `.github/workflows/weekly-flake-updat
 
 The PR is then validated by the repo's normal `nix-ci` pull request workflow. If `nix-ci` succeeds for the automation branch, `.github/workflows/merge-weekly-flake-update.yml` merges the PR automatically. If `nix-ci` fails, the PR stays open for investigation and follow-up fixes.
 
-This flow requires a repository secret named `PR_AUTOMATION_TOKEN` with permission to write contents and pull requests. The automation uses that token both to create the PR and to merge it after successful CI so that the PR's `pull_request` workflows actually run.
+This flow requires a repository secret named `PR_AUTOMATION_TOKEN` with permission to write contents and pull requests. Prefer a GitHub App token or a fine-grained PAT scoped to this repository only. The automation uses that token both to create the PR and to merge it after successful CI so that the PR's `pull_request` workflows actually run.
 
 The normal PR validation for update PRs remains:
 

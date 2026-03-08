@@ -33,3 +33,24 @@
 - `nix flake show --no-write-lock-file`: passed.
 - `nix flake check --no-build --no-write-lock-file`: passed.
 - Pushed the fix to PR `#2` and refreshed the PR description to remove the stale baseline-failure note.
+
+## Follow-up: Harden GitHub Actions security
+
+- [x] Audit workflow files and repository Actions settings for code-injection and token-exposure risks.
+- [x] Pin all third-party actions to immutable SHAs and tighten checkout behavior.
+- [x] Reduce default workflow token permissions and strengthen privileged merge provenance checks.
+- [x] Apply repository-level GitHub Actions restrictions that match the pinned workflow set.
+- [ ] Re-run local workflow validation and update PR `#2`.
+
+### Security Hardening Review
+
+- Pinned `actions/checkout`, `DeterminateSystems/nix-installer-action`, and `peter-evans/create-pull-request` to full commit SHAs.
+- Set `persist-credentials: false` and `fetch-depth: 1` on all checkout steps.
+- Reduced `GITHUB_TOKEN` permissions in the write-capable workflows so writes happen through the scoped `PR_AUTOMATION_TOKEN` only.
+- Hardened `.github/workflows/merge-weekly-flake-update.yml` to verify base branch, head branch, head repository, cross-repo status, and exact validated head SHA before merge.
+- Updated repository Actions settings with `allowed_actions=selected`, `sha_pinning_required=true`, and an explicit allowlist for `DeterminateSystems/nix-installer-action@*` and `peter-evans/create-pull-request@*`.
+- Updated fork PR workflow approval policy to `all_external_contributors`.
+- `nix run nixpkgs#actionlint -- .github/workflows/nix-ci.yml .github/workflows/weekly-flake-update.yml .github/workflows/merge-weekly-flake-update.yml`: passed.
+- `nix flake show --no-write-lock-file`: passed.
+- `nix flake check --no-build --no-write-lock-file`: passed.
+- `nix develop -c bash tests/unit/devshell_unit.sh`: passed (`46 assertions`).

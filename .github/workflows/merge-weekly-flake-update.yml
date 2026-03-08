@@ -5,9 +5,7 @@ on:
     workflows: ["nix-ci"]
     types: [completed]
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: merge-weekly-flake-update
@@ -18,6 +16,8 @@ jobs:
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.repository.full_name == github.repository &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
       github.event.workflow_run.head_branch == 'automation/weekly-flake-update'
     runs-on: ubuntu-latest
     steps:
@@ -42,8 +42,51 @@ jobs:
           fi
           echo "number=$pr_number" >> "$GITHUB_OUTPUT"
 
+      - name: Verify pull request provenance
+        env:
+          GH_TOKEN: ${{ secrets.PR_AUTOMATION_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          EXPECTED_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          expected_owner="${GITHUB_REPOSITORY%/*}"
+          expected_repo="${GITHUB_REPOSITORY#*/}"
+          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json baseRefName,headRefName,headRefOid,headRepository,headRepositoryOwner,isCrossRepository)"
+          head_ref="$(jq -r '.headRefName' <<<"$pr_json")"
+          head_oid="$(jq -r '.headRefOid' <<<"$pr_json")"
+          base_ref="$(jq -r '.baseRefName' <<<"$pr_json")"
+          is_cross_repo="$(jq -r '.isCrossRepository' <<<"$pr_json")"
+          head_repo_name="$(jq -r '.headRepository.name // empty' <<<"$pr_json")"
+          head_repo_owner="$(jq -r '.headRepositoryOwner.login // empty' <<<"$pr_json")"
+
+          if [ "$head_ref" != "automation/weekly-flake-update" ]; then
+            echo "Refusing to merge PR #$PR_NUMBER: unexpected head ref '$head_ref'."
+            exit 1
+          fi
+
+          if [ "$base_ref" != "main" ]; then
+            echo "Refusing to merge PR #$PR_NUMBER: unexpected base ref '$base_ref'."
+            exit 1
+          fi
+
+          if [ "$is_cross_repo" != "false" ]; then
+            echo "Refusing to merge PR #$PR_NUMBER: cross-repository PRs are not eligible for privileged auto-merge."
+            exit 1
+          fi
+
+          if [ "$head_repo_owner" != "$expected_owner" ] || [ "$head_repo_name" != "$expected_repo" ]; then
+            echo "Refusing to merge PR #$PR_NUMBER: unexpected head repository '$head_repo_owner/$head_repo_name'."
+            exit 1
+          fi
+
+          if [ "$head_oid" != "$EXPECTED_HEAD_SHA" ]; then
+            echo "Refusing to merge PR #$PR_NUMBER: head SHA '$head_oid' does not match validated workflow SHA '$EXPECTED_HEAD_SHA'."
+            exit 1
+          fi
+
       - name: Merge successful update PR
         env:
           GH_TOKEN: ${{ secrets.PR_AUTOMATION_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
-        run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$HEAD_SHA"
