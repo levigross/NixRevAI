@@ -30,6 +30,7 @@ in {
 
   packages =
     [
+      pkgs.apktool
       ghidraWithExtensions
       rizinWithPlugins
       pkgs.radare2

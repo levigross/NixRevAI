@@ -145,6 +145,7 @@ The module provides `devShells.default` per system. It also exposes `reenvToolse
 | retdec | LLVM-based machine-code decompiler |
 | Cutter | GUI front-end for Rizin/radare |
 | Binary Ninja Free | Secondary disassembler/decompiler for cross-checking |
+| Apktool | Android APK decode/rebuild workflow for manifests, resources, and smali |
 | JADX | Android DEX/APK decompiler |
 | Krakatau2 | Java bytecode disassembly and decompilation |
 | BinDiff (x86_64 only) | Binary diffing to compare functions between builds |
@@ -155,6 +156,8 @@ The module provides `devShells.default` per system. It also exposes `reenvToolse
 | Tool | Description |
 |---|---|
 | gdb | GNU debugger |
+| bpftrace | eBPF tracing for kernel and userland behavior |
+| Frida tools | Dynamic instrumentation and runtime API hooking |
 | GEF | GDB enhancement framework for exploit/RE workflows |
 | lldb | LLVM debugger |
 | rr | Record/replay debugger for deterministic analysis |
@@ -176,11 +179,15 @@ The module provides `devShells.default` per system. It also exposes `reenvToolse
 |---|---|
 | binwalk | Firmware/image extraction and signature scanning |
 | foremost | File carving from raw images |
+| mitmproxy | Interactive interception and replay for HTTP(S) traffic |
 | squashfsTools | SquashFS firmware filesystem extraction |
 | jefferson | JFFS2 filesystem extraction |
 | ubi_reader | UBI/UBIFS parsing for embedded firmware |
 | scalpel | File carving and recovery |
 | sleuthkit | Filesystem forensics (`fls`, `icat`, etc.) |
+| Volatility 3 | Memory forensics framework for Windows, Linux, and macOS images |
+| Wireshark / TShark | GUI and CLI packet inspection for protocol analysis |
+| YARA-X (`yr`) | Rule-based scanning and triage for firmware, malware, and extracted filesystems |
 | p7zip | 7z archive extraction |
 | rar | RAR archive handling |
 
