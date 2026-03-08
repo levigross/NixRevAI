@@ -1,0 +1,49 @@
+name: merge-weekly-flake-update
+
+on:
+  workflow_run:
+    workflows: ["nix-ci"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: merge-weekly-flake-update
+  cancel-in-progress: false
+
+jobs:
+  merge-update-pr:
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'automation/weekly-flake-update'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require PR automation token
+        env:
+          PR_AUTOMATION_TOKEN: ${{ secrets.PR_AUTOMATION_TOKEN }}
+        run: |
+          if [ -z "$PR_AUTOMATION_TOKEN" ]; then
+            echo "PR_AUTOMATION_TOKEN must be configured so the automation workflow can merge successful update PRs."
+            exit 1
+          fi
+
+      - name: Resolve pull request number
+        id: pr
+        env:
+          PULL_REQUESTS_JSON: ${{ toJson(github.event.workflow_run.pull_requests) }}
+        run: |
+          pr_number="$(jq -r '.[0].number // empty' <<<"$PULL_REQUESTS_JSON")"
+          if [ -z "$pr_number" ]; then
+            echo "No pull request was attached to the successful nix-ci workflow run."
+            exit 1
+          fi
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Merge successful update PR
+        env:
+          GH_TOKEN: ${{ secrets.PR_AUTOMATION_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch

@@ -17,6 +17,15 @@ jobs:
   update-flake-lock:
     runs-on: ubuntu-latest
     steps:
+      - name: Require PR automation token
+        env:
+          PR_AUTOMATION_TOKEN: ${{ secrets.PR_AUTOMATION_TOKEN }}
+        run: |
+          if [ -z "$PR_AUTOMATION_TOKEN" ]; then
+            echo "PR_AUTOMATION_TOKEN must be configured so update PRs trigger pull_request CI."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -39,23 +48,12 @@ jobs:
         if: steps.lockfile.outputs.changed == 'true'
         run: git diff -- flake.lock
 
-      - name: Show flake outputs
-        if: steps.lockfile.outputs.changed == 'true'
-        run: nix flake show --no-write-lock-file
-
-      - name: Evaluate flake checks
-        if: steps.lockfile.outputs.changed == 'true'
-        run: nix flake check --no-build --no-write-lock-file
-
-      - name: Run devShell unit tests
-        if: steps.lockfile.outputs.changed == 'true'
-        run: nix develop -c bash tests/unit/devshell_unit.sh
-
       - name: Create pull request
+        id: create_pr
         if: steps.lockfile.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.PR_AUTOMATION_TOKEN || github.token }}
+          token: ${{ secrets.PR_AUTOMATION_TOKEN }}
           commit-message: "chore: update flake.lock"
           title: "chore: weekly flake input update"
           body: |
@@ -63,16 +61,19 @@ jobs:
             - update pinned flake inputs with `nix flake update`
             - refresh `flake.lock`
 
-            ## Verification
-            - `nix flake show --no-write-lock-file`
-            - `nix flake check --no-build --no-write-lock-file`
-            - `nix develop -c bash tests/unit/devshell_unit.sh`
-
             ## Notes
             - This PR was created automatically by `.github/workflows/weekly-flake-update.yml`.
-            - Configure the optional `PR_AUTOMATION_TOKEN` secret if you want the generated PR to trigger the normal PR workflows.
+            - The repo's normal `nix-ci` pull request workflow will build and validate this PR.
+            - `.github/workflows/merge-weekly-flake-update.yml` will merge this PR only after `nix-ci` completes successfully.
           branch: automation/weekly-flake-update
           delete-branch: true
           labels: enhancement
           add-paths: |
             flake.lock
+
+      - name: Report PR update
+        if: steps.lockfile.outputs.changed == 'true'
+        run: |
+          echo "PR operation: ${{ steps.create_pr.outputs.pull-request-operation }}"
+          echo "PR number: ${{ steps.create_pr.outputs.pull-request-number }}"
+          echo "PR URL: ${{ steps.create_pr.outputs.pull-request-url }}"

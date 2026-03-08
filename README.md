@@ -6,17 +6,19 @@ A reproducible Nix flake for reverse engineering, firmware analysis, binary rese
 
 ## Automated updates
 
-This repo includes a scheduled workflow at `.github/workflows/weekly-flake-update.yml` that runs every Monday at 08:00 UTC and opens a PR when `nix flake update` changes `flake.lock`.
+This repo includes a scheduled workflow at `.github/workflows/weekly-flake-update.yml` that runs every Monday at 08:00 UTC and opens or refreshes a PR when `nix flake update` changes `flake.lock`.
 
-The workflow validates the updated lockfile before opening the PR by running:
+The PR is then validated by the repo's normal `nix-ci` pull request workflow. If `nix-ci` succeeds for the automation branch, `.github/workflows/merge-weekly-flake-update.yml` merges the PR automatically. If `nix-ci` fails, the PR stays open for investigation and follow-up fixes.
+
+This flow requires a repository secret named `PR_AUTOMATION_TOKEN` with permission to write contents and pull requests. The automation uses that token both to create the PR and to merge it after successful CI so that the PR's `pull_request` workflows actually run.
+
+The normal PR validation for update PRs remains:
 
 ```bash
 nix flake show --no-write-lock-file
 nix flake check --no-build --no-write-lock-file
 nix develop -c bash tests/unit/devshell_unit.sh
 ```
-
-If you want the generated PR to trigger the repo's normal `push` and `pull_request` workflows, add an optional `PR_AUTOMATION_TOKEN` repository secret with permission to write contents and pull requests. Without that secret, the workflow still opens or updates the PR using the default `GITHUB_TOKEN`, but GitHub suppresses follow-on workflow runs created by that token.
 
 ## Quick start
 
