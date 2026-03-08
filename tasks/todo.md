@@ -6,7 +6,7 @@
 - [x] Implement post-CI merge behavior for successful automation PRs.
 - [x] Document the PR-first build-and-merge behavior in the repository.
 - [x] Validate workflow syntax and relevant repo checks.
-- [ ] Commit the updated change set and refresh the pull request.
+- [x] Commit the updated change set and refresh the pull request.
 
 ## Review
 
@@ -17,3 +17,4 @@
 - `nix flake show --no-write-lock-file`: passed.
 - `nix flake check --no-build --no-write-lock-file`: passed.
 - `nix develop -c bash tests/unit/devshell_unit.sh`: fails on this branch because `sleuthkit` is missing from the devShell PATH, so automation PRs will stay open until that baseline CI issue is fixed.
+- Updated PR `#2` with the PR-first build-and-merge workflow changes.
