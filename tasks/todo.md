@@ -18,3 +18,17 @@
 - `nix flake check --no-build --no-write-lock-file`: passed.
 - `nix develop -c bash tests/unit/devshell_unit.sh`: fails on this branch because `sleuthkit` is missing from the devShell PATH, so automation PRs will stay open until that baseline CI issue is fixed.
 - Updated PR `#2` with the PR-first build-and-merge workflow changes.
+
+## Follow-up: Fix sleuthkit devShell test
+
+- [x] Trace the failing `sleuthkit` assertion to the forensics toolset.
+- [x] Patch the unit test or shell composition at the narrowest correct point.
+- [x] Re-run the devShell unit test and supporting repo checks.
+- [ ] Commit and push the fix to PR `#2`.
+
+### Follow-up Review
+
+- Updated `tests/unit/devshell_unit.sh` to assert real Sleuth Kit executables (`fls` and `icat`) instead of a nonexistent `sleuthkit` wrapper command.
+- `nix develop -c bash tests/unit/devshell_unit.sh`: passed (`46 assertions`).
+- `nix flake show --no-write-lock-file`: passed.
+- `nix flake check --no-build --no-write-lock-file`: passed.
