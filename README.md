@@ -4,6 +4,20 @@
 
 A reproducible Nix flake for reverse engineering, firmware analysis, binary research, and AI-assisted workflows. 40+ tools organized into toggleable toolsets, packaged as a flake-parts module you can use standalone or import into your own flake.
 
+## Automated updates
+
+This repo includes a scheduled workflow at `.github/workflows/weekly-flake-update.yml` that runs every Monday at 08:00 UTC and opens a PR when `nix flake update` changes `flake.lock`.
+
+The workflow validates the updated lockfile before opening the PR by running:
+
+```bash
+nix flake show --no-write-lock-file
+nix flake check --no-build --no-write-lock-file
+nix develop -c bash tests/unit/devshell_unit.sh
+```
+
+If you want the generated PR to trigger the repo's normal `push` and `pull_request` workflows, add an optional `PR_AUTOMATION_TOKEN` repository secret with permission to write contents and pull requests. Without that secret, the workflow still opens or updates the PR using the default `GITHUB_TOKEN`, but GitHub suppresses follow-on workflow runs created by that token.
+
 ## Quick start
 
 ### 1. Enter the environment

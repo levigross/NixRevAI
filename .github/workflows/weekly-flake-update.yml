@@ -1,0 +1,78 @@
+name: weekly-flake-update
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: weekly-flake-update
+  cancel-in-progress: false
+
+jobs:
+  update-flake-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+
+      - name: Update flake lock
+        run: nix flake update
+
+      - name: Detect lockfile changes
+        id: lockfile
+        run: |
+          if git diff --quiet -- flake.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Show lockfile diff
+        if: steps.lockfile.outputs.changed == 'true'
+        run: git diff -- flake.lock
+
+      - name: Show flake outputs
+        if: steps.lockfile.outputs.changed == 'true'
+        run: nix flake show --no-write-lock-file
+
+      - name: Evaluate flake checks
+        if: steps.lockfile.outputs.changed == 'true'
+        run: nix flake check --no-build --no-write-lock-file
+
+      - name: Run devShell unit tests
+        if: steps.lockfile.outputs.changed == 'true'
+        run: nix develop -c bash tests/unit/devshell_unit.sh
+
+      - name: Create pull request
+        if: steps.lockfile.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PR_AUTOMATION_TOKEN || github.token }}
+          commit-message: "chore: update flake.lock"
+          title: "chore: weekly flake input update"
+          body: |
+            ## Summary
+            - update pinned flake inputs with `nix flake update`
+            - refresh `flake.lock`
+
+            ## Verification
+            - `nix flake show --no-write-lock-file`
+            - `nix flake check --no-build --no-write-lock-file`
+            - `nix develop -c bash tests/unit/devshell_unit.sh`
+
+            ## Notes
+            - This PR was created automatically by `.github/workflows/weekly-flake-update.yml`.
+            - Configure the optional `PR_AUTOMATION_TOKEN` secret if you want the generated PR to trigger the normal PR workflows.
+          branch: automation/weekly-flake-update
+          delete-branch: true
+          labels: enhancement
+          add-paths: |
+            flake.lock
