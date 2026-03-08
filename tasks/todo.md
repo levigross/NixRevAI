@@ -54,3 +54,21 @@
 - `nix flake show --no-write-lock-file`: passed.
 - `nix flake check --no-build --no-write-lock-file`: passed.
 - `nix develop -c bash tests/unit/devshell_unit.sh`: passed (`46 assertions`).
+
+## Follow-up: Add Recommended RE Tools
+
+- [x] Map the requested tools to existing toolset categories and confirm package/command names.
+- [x] Add the requested tools to Nix toolsets and update docs/tests.
+- [x] Re-run repo validation and open a fresh PR from `main`.
+
+### Tool Addition Review
+
+- Added `apktool` to the reversing toolset.
+- Added `bpftrace` and `frida-tools` to the debugging toolset.
+- Added `mitmproxy`, `volatility3`, `wireshark`, and `yara-x` to the forensics toolset.
+- Updated `README.md` and `tests/unit/devshell_unit.sh` to document and validate the new commands.
+- `nix develop -c bash tests/unit/devshell_unit.sh`: passed (`53 assertions`).
+- `nix flake show --no-write-lock-file`: passed.
+- `nix flake check --no-build --no-write-lock-file`: passed.
+- Replaying this tool-addition change on a fresh branch because the earlier branch had already been merged.
+- Opened follow-up PR `#3` from `feat/add-re-tools`.

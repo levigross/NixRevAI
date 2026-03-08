@@ -87,6 +87,7 @@ assert_symlink() {
 # ---------------------------------------------------------------------------
 # Section: Core reversing tools (reversing toolset)
 # ---------------------------------------------------------------------------
+assert_cmd apktool
 assert_cmd ghidra
 assert_cmd rizin
 assert_cmd r2
@@ -103,6 +104,8 @@ fi
 # ---------------------------------------------------------------------------
 # Section: Debugging toolset
 # ---------------------------------------------------------------------------
+assert_cmd bpftrace
+assert_cmd frida
 assert_cmd gdb
 assert_cmd strace
 
@@ -116,9 +119,13 @@ assert_cmd afl-fuzz
 # ---------------------------------------------------------------------------
 assert_cmd binwalk
 assert_cmd foremost
+assert_cmd mitmproxy
 # Sleuth Kit ships a family of binaries rather than a `sleuthkit` command.
 assert_cmd fls
 assert_cmd icat
+assert_cmd tshark
+assert_cmd vol
+assert_cmd yr
 
 # ---------------------------------------------------------------------------
 # Section: Crypto toolset
