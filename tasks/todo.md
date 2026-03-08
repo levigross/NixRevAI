@@ -40,7 +40,7 @@
 - [x] Pin all third-party actions to immutable SHAs and tighten checkout behavior.
 - [x] Reduce default workflow token permissions and strengthen privileged merge provenance checks.
 - [x] Apply repository-level GitHub Actions restrictions that match the pinned workflow set.
-- [ ] Re-run local workflow validation and update PR `#2`.
+- [x] Re-run local workflow validation and update PR `#2`.
 
 ### Security Hardening Review
 
