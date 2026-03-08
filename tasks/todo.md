@@ -24,7 +24,7 @@
 - [x] Trace the failing `sleuthkit` assertion to the forensics toolset.
 - [x] Patch the unit test or shell composition at the narrowest correct point.
 - [x] Re-run the devShell unit test and supporting repo checks.
-- [ ] Commit and push the fix to PR `#2`.
+- [x] Commit and push the fix to PR `#2`.
 
 ### Follow-up Review
 
@@ -32,3 +32,4 @@
 - `nix develop -c bash tests/unit/devshell_unit.sh`: passed (`46 assertions`).
 - `nix flake show --no-write-lock-file`: passed.
 - `nix flake check --no-build --no-write-lock-file`: passed.
+- Pushed the fix to PR `#2` and refreshed the PR description to remove the stale baseline-failure note.
