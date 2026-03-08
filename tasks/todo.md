@@ -5,7 +5,7 @@
 - [x] Implement the GitHub Actions workflow for scheduled updates.
 - [x] Document the automation in the repository.
 - [x] Validate workflow syntax and relevant repo checks.
-- [ ] Commit the change set and open a pull request.
+- [x] Commit the change set and open a pull request.
 
 ## Review
 
@@ -15,3 +15,4 @@
 - `nix flake check --no-build --no-write-lock-file`: passed.
 - `nix run nixpkgs#actionlint -- .github/workflows/weekly-flake-update.yml`: passed.
 - `nix develop -c bash tests/unit/devshell_unit.sh`: fails on both this branch and `origin/main` because `sleuthkit` is missing from the devShell PATH.
+- Opened PR `#2`: `feat: automate weekly flake update PRs`.
