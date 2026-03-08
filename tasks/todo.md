@@ -59,7 +59,7 @@
 
 - [x] Map the requested tools to existing toolset categories and confirm package/command names.
 - [x] Add the requested tools to Nix toolsets and update docs/tests.
-- [ ] Re-run repo validation and open a fresh PR from `main`.
+- [x] Re-run repo validation and open a fresh PR from `main`.
 
 ### Tool Addition Review
 
@@ -71,3 +71,4 @@
 - `nix flake show --no-write-lock-file`: passed.
 - `nix flake check --no-build --no-write-lock-file`: passed.
 - Replaying this tool-addition change on a fresh branch because the earlier branch had already been merged.
+- Opened follow-up PR `#3` from `feat/add-re-tools`.
