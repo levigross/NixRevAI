@@ -14,8 +14,8 @@
   devTools = import ./dev-tools.nix {inherit pkgs;};
 
   packagesByGroup = {
-    reversing = reversing.packages;
     inherit
+      reversing
       debugging
       binaryAnalysis
       forensics
@@ -37,6 +37,4 @@
     ++ pkgs.lib.optionals enableDevTools packagesByGroup.devTools;
 in {
   inherit packagesByGroup allPackages;
-
-  reversingMeta = reversing.meta;
 }

@@ -1,10 +1,31 @@
-{
-  inputs,
+{reenvInputs}: {
   lib,
   config,
   ...
 }: {
   options.reenv = {
+    nixpkgs = lib.mkOption {
+      type = lib.types.unspecified;
+      default = reenvInputs.nixpkgs;
+      defaultText = lib.literalExpression "reenvInputs.nixpkgs";
+      description = ''
+        Nixpkgs flake input used to build the ReEnv dev shell.
+
+        Defaults to the nixpkgs that ReEnv itself is pinned against. Downstream
+        flakes consuming `reenv.flakeModules.default` can override this to use
+        their own nixpkgs pin.
+      '';
+    };
+
+    extraOverlays = lib.mkOption {
+      type = lib.types.listOf (lib.types.functionTo (lib.types.functionTo (lib.types.attrsOf lib.types.unspecified)));
+      default = [];
+      description = ''
+        Extra overlays to stack on top of ReEnv's overlay when importing
+        nixpkgs for the dev shell.
+      '';
+    };
+
     enableDevTools = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -25,14 +46,14 @@
   };
 
   config.perSystem = {system, ...}: let
-    pkgs = import inputs.nixpkgs {
+    pkgs = import config.reenv.nixpkgs {
       inherit system;
       config.allowUnfree = true;
-      overlays = [
-        (import ../overlays/default.nix {
-          inherit inputs system;
-        })
-      ];
+      overlays =
+        [
+          (import ../overlays/default.nix {inherit reenvInputs;})
+        ]
+        ++ config.reenv.extraOverlays;
     };
 
     reenvToolsets = import ../toolsets/default.nix {
@@ -47,8 +68,8 @@
 
     devShells.default = pkgs.mkShell {
       CGO_ENABLED = 0;
-      GHIDRA_INSTALL_DIR = "${reenvToolsets.reversingMeta.ghidraBase}/lib/ghidra";
-      NIX_GHIDRAHOME = "${reenvToolsets.reversingMeta.ghidra}/lib/ghidra/Ghidra";
+      GHIDRA_INSTALL_DIR = "${pkgs.ghidra-bin}/lib/ghidra";
+      NIX_GHIDRAHOME = "${pkgs.ghidra-with-extensions}/lib/ghidra/Ghidra";
       JAVA_HOME = "${pkgs.openjdk21}";
 
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
@@ -59,7 +80,7 @@
       buildInputs = reenvToolsets.allPackages;
 
       shellHook = let
-        mcpConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs {
+        mcpConfig = reenvInputs.mcp-servers-nix.lib.mkConfig pkgs {
           flavor = "claude-code";
           programs = {
             context7.enable = true;
@@ -69,7 +90,7 @@
               command = "${pkgs.lib.getExe pkgs.uv}";
               args = [
                 "run"
-                "${reenvToolsets.reversingMeta.ghidraMcp}/libexec/ghidra-mcp/bridge_mcp_ghidra.py"
+                "${pkgs.ghidra-mcp}/libexec/ghidra-mcp/bridge_mcp_ghidra.py"
               ];
             };
           };

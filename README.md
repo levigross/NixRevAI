@@ -33,15 +33,29 @@ command -v ghidra rizin uv
 
 ## Using ReEnv in your own flake
 
-### As a dev shell dependency
+ReEnv is modular — consume as much or as little as you need. All of ReEnv's
+internal inputs (pwndbg, nixpkgs-retdec, mcp-servers-nix, ghidra-mcp) travel
+with the flake transparently; you only bring your own `nixpkgs`.
 
-The simplest integration: inherit ReEnv's full environment in your own shell via `inputsFrom`.
+### Public flake outputs
+
+| Output | Purpose |
+|---|---|
+| `reenv.overlays.default` | Standard nixpkgs overlay adding `pwndbg`, `pwndbg-lldb`, `bindiff`, `retdec`, `ghidra-bin`, `ghidra-mcp`, `ghidra-with-extensions`, and a pyghidra-enabled `python3`. |
+| `reenv.packages.${system}.*` | Direct access to the custom packages above (bindiff is x86_64-linux only). |
+| `reenv.flakeModules.default` | flake-parts module providing `devShells.default` and accepting `reenv.nixpkgs` / `reenv.extraOverlays` overrides. |
+| `reenv.lib.toolsets.*` | Per-toolset builder functions (`reversing`, `debugging`, `binaryAnalysis`, `forensics`, `crypto`, `hardware`, `python`, `devTools`). Each takes `{ pkgs }` and returns a list of packages. |
+| `reenv.devShells.${system}.default` | The full kitchen-sink dev shell built against ReEnv's pinned nixpkgs. |
+
+### Option 1 — Grab individual packages
+
+The most direct consumption. Use when you only want pwndbg (or retdec, or
+bindiff, etc.) in your own shell and everything else is yours.
 
 ```nix
-# flake.nix
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     reenv.url = "github:levigross/NixRevAI";
   };
 
@@ -49,59 +63,123 @@ The simplest integration: inherit ReEnv's full environment in your own shell via
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
-    in
-    {
+    in {
       devShells.${system}.default = pkgs.mkShell {
-        inputsFrom = [ reenv.devShells.${system}.default ];
-
-        # Add your own packages on top
-        packages = [ pkgs.yara ];
+        buildInputs = [
+          reenv.packages.${system}.pwndbg
+          reenv.packages.${system}.pwndbg-lldb
+          reenv.packages.${system}.retdec
+        ];
       };
     };
 }
 ```
 
-### As a flake-parts module
+### Option 2 — Apply ReEnv's overlay to your own nixpkgs
 
-For flake-parts projects, import the module directly and configure which toolsets are enabled.
+Use when you want the custom packages to appear on your own `pkgs` instance
+(so `pkgs.pwndbg`, `pkgs.bindiff`, etc. are available alongside everything
+else you normally use).
 
 ```nix
-# flake.nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";  # your own pin
+    reenv.url = "github:levigross/NixRevAI";
+  };
+
+  outputs = { nixpkgs, reenv, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+        overlays = [ reenv.overlays.default ];
+      };
+    in {
+      devShells.${system}.default = pkgs.mkShell {
+        buildInputs = [ pkgs.pwndbg pkgs.ghidra-with-extensions ];
+      };
+    };
+}
+```
+
+### Option 3 — Cherry-pick toolsets with `lib.toolsets`
+
+Use when you want a curated bundle (e.g. the whole debugging toolset) without
+pulling in everything. Each toolset function takes `{ pkgs }` (the overlay
+should be applied first so packages like `pwndbg` resolve) and returns a plain
+list you can drop into `buildInputs`.
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    reenv.url = "github:levigross/NixRevAI";
+  };
+
+  outputs = { nixpkgs, reenv, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+        overlays = [ reenv.overlays.default ];
+      };
+    in {
+      devShells.${system}.default = pkgs.mkShell {
+        buildInputs =
+          (reenv.lib.toolsets.debugging { inherit pkgs; })
+          ++ (reenv.lib.toolsets.forensics { inherit pkgs; })
+          ++ [ pkgs.your-own-tool ];
+      };
+    };
+}
+```
+
+### Option 4 — As a flake-parts module
+
+Use when you already have a flake-parts project and want the entire ReEnv
+devshell dropped into it. Bring your own `nixpkgs`; ReEnv picks up everything
+else from its own bundled lock.
+
+```nix
 {
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";  # your own pin
     reenv.url = "github:levigross/NixRevAI";
-
-    # Required: ReEnv's module needs these inputs.
-    nixpkgs-retdec.url = "github:NixOS/nixpkgs/nixos-25.05";
-    mcp-servers-nix = {
-      url = "github:natsukium/mcp-servers-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = inputs@{ flake-parts, ... }:
+  outputs = inputs @ { flake-parts, reenv, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" "aarch64-linux" ];
 
-      imports = [ inputs.reenv.flakeModules.default ];
+      imports = [ reenv.flakeModules.default ];
 
-      # All options default to true. Set to false to exclude a group.
-      reenv.enableDevTools = true;
-      reenv.enablePythonToolset = true;
+      # Override the nixpkgs ReEnv builds against. Defaults to ReEnv's own pin
+      # if you omit this.
+      reenv.nixpkgs = inputs.nixpkgs;
+
+      # Optional: stack your own overlays on top of ReEnv's.
+      # reenv.extraOverlays = [ (final: prev: { my-pkg = ...; }) ];
+
+      # All toolset toggles default to true.
       reenv.enableHardwareToolset = false;
     };
 }
 ```
 
-The module provides `devShells.default` per system. It also exposes `reenvToolsets` (the grouped package lists) and `pkgs` (with overlays applied) as flake-parts module args, so downstream modules can reference them.
+The module provides `devShells.default` per system. It also exposes
+`reenvToolsets` (the grouped package lists) and `pkgs` (with overlays applied)
+as flake-parts module args, so downstream modules can reference them.
 
 ### Configuration options
 
 | Option | Type | Default | Description |
 |---|---|---|---|
+| `reenv.nixpkgs` | flake input | ReEnv's bundled nixos-25.11 | Nixpkgs source used to build the dev shell. |
+| `reenv.extraOverlays` | list of overlays | `[]` | Extra overlays stacked on top of ReEnv's overlay. |
 | `reenv.enableDevTools` | `bool` | `true` | General development tools (git, gcc, go, jq, etc.) |
 | `reenv.enablePythonToolset` | `bool` | `true` | Python RE stack (angr, pwntools, lief, etc.) |
 | `reenv.enableHardwareToolset` | `bool` | `true` | Hardware and emulation tools (qemu, openocd, etc.) |
@@ -144,6 +222,8 @@ The module provides `devShells.default` per system. It also exposes `reenvToolse
 | Frida tools | Dynamic instrumentation and runtime API hooking |
 | GEF | GDB enhancement framework for exploit/RE workflows |
 | lldb | LLVM debugger |
+| pwndbg (gdb) | Exploit-focused GDB plugin, shipped via upstream flake since nixpkgs removed it |
+| pwndbg-lldb | LLDB-flavored pwndbg variant from the upstream flake |
 | rr | Record/replay debugger for deterministic analysis |
 | strace | Syscall tracing |
 

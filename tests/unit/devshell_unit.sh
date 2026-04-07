@@ -107,6 +107,9 @@ fi
 assert_cmd bpftrace
 assert_cmd frida
 assert_cmd gdb
+assert_cmd lldb
+assert_cmd pwndbg
+assert_cmd pwndbg-lldb
 assert_cmd strace
 
 # ---------------------------------------------------------------------------

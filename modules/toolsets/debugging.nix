@@ -4,6 +4,8 @@
   pkgs.gdb
   pkgs.gef
   pkgs.lldb
+  pkgs.pwndbg
+  pkgs.pwndbg-lldb
   pkgs.rr
   pkgs.strace
 ]
