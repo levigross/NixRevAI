@@ -64,6 +64,17 @@ in {
       };
 
       pyghidra = psFinal.callPackage ../pkgs/pyghidra.nix {};
+
+      # PSPTool - AMD PSP firmware parser/inspector. Not in nixpkgs.
+      psptool = psFinal.callPackage ../pkgs/psptool.nix {};
+
+      # BIOSUtilities - platomav's multi-vendor BIOS/capsule extractors.
+      biosutilities = psFinal.callPackage ../pkgs/biosutilities.nix {};
     };
   };
+
+  # Top-level aliases so `pkgs.<tool>` exposes the CLI directly, matching
+  # how other callers reach it (e.g. `lib.getExe pkgs.psptool`).
+  psptool = final.python3.pkgs.psptool;
+  biosutilities = final.python3.pkgs.biosutilities;
 }

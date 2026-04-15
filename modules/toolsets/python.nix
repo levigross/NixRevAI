@@ -13,5 +13,7 @@
       mcp
       angr
       angrcli
+      pefile # PE32/PE32+ parsing — dissect extracted UEFI/DXE modules
+      capstone # multi-arch disassembler used by pefile/scripts
     ]))
 ]
