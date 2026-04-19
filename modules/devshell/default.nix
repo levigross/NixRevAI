@@ -85,15 +85,22 @@
           programs = {
             context7.enable = true;
           };
-          settings.servers = {
-            ghidra-mcp = {
-              command = "${pkgs.lib.getExe pkgs.uv}";
-              args = [
-                "run"
-                "${pkgs.ghidra-mcp}/libexec/ghidra-mcp/bridge_mcp_ghidra.py"
-              ];
+          settings.servers =
+            {
+              ghidra-mcp = {
+                command = "${pkgs.lib.getExe pkgs.uv}";
+                args = [
+                  "run"
+                  "${pkgs.ghidra-mcp}/libexec/ghidra-mcp/bridge_mcp_ghidra.py"
+                ];
+              };
+            }
+            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+              framewalk = {
+                command = "${reenvInputs.framewalk.packages.${pkgs.stdenv.hostPlatform.system}.framewalk-mcp}/bin/framewalk-mcp";
+                args = [];
+              };
             };
-          };
         };
       in ''
         ln -sf ${mcpConfig} .mcp.json
